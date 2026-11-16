@@ -1,0 +1,21 @@
+import type { UnitData } from '../types'
+import { u01 } from './u01-present-perfect'
+import { u02 } from './u02-just-already-yet'
+import { u03 } from './u03-perfect-vs-past'
+import { u04 } from './u04-for-since'
+import { u05 } from './u05-past-perfect'
+import { u06 } from './u06-used-to'
+import { u07 } from './u07-conditionals-0-1'
+import { u08 } from './u08-second-conditional'
+import { u09 } from './u09-passive-present-past'
+import { u10 } from './u10-passive-more'
+import { u11 } from './u11-relative-clauses'
+import { u12 } from './u12-reported-statements'
+import { u13 } from './u13-reported-questions'
+import { u14 } from './u14-question-tags'
+import { u15 } from './u15-phrasal-verbs'
+import { u16 } from './u16-punctuation-paragraphs'
+import { u17 } from './u17-emails'
+
+/** Ordem da trilha do nível B1. */
+export const b1Units: UnitData[] = [u01, u02, u03, u04, u05, u06, u07, u08, u09, u10, u11, u12, u13, u14, u15, u16, u17]

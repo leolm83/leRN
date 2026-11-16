@@ -1,0 +1,100 @@
+import type { UnitData } from '../types'
+
+export const u03: UnitData = {
+  slug: 'idioms',
+  title: 'Idioms',
+  summary: 'Expressões idiomáticas frequentes na escrita (jornais, e-mails, ensaios) e quando evitá-las.',
+  theory: [
+    {
+      title: 'Idioms úteis na escrita',
+      body: ``,
+      table: {
+        head: ['Idiom', 'Sentido'],
+        rows: [
+          ['the tip of the iceberg', 'a ponta do iceberg'],
+          ['a double-edged sword', 'faca de dois gumes'],
+          ['to cut corners', 'fazer de qualquer jeito para economizar'],
+          ['to be on the same page', 'estar alinhado, de acordo'],
+          ['to get the ball rolling', 'dar o pontapé inicial'],
+          ['to hit the nail on the head', 'acertar em cheio'],
+          ['in the long run', 'a longo prazo'],
+          ['a blessing in disguise', 'há males que vêm para o bem'],
+          ['to go the extra mile', 'fazer mais do que o esperado'],
+          ['to beat around the bush', 'enrolar, fazer rodeios'],
+          ['to break the ice', 'quebrar o gelo'],
+          ['once in a blue moon', 'muito raramente'],
+          ['to call it a day', 'encerrar (o trabalho do dia)'],
+          ['to be in hot water', 'estar em apuros'],
+          ['to keep an eye on', 'ficar de olho em'],
+          ['the last straw', 'a gota d\'água'],
+        ],
+      },
+    },
+    {
+      title: 'Usando idioms com cuidado',
+      body: `- Idioms são **fixos**: não troque palavras ("hit the nail **in** the head" ✘ → *hit the nail **on** the head*). Os verbos, porém, conjugam: *She **hit** the nail on the head.*
+- São comuns em jornalismo, e-mails e textos opinativos; **evite** em textos acadêmicos e jurídicos.
+- Um ou dois por texto bastam — excesso soa forçado ou clichê.`,
+    },
+  ],
+  vocab: [
+    { en: 'the tip of the iceberg', pt: 'a ponta do iceberg' },
+    { en: 'a double-edged sword', pt: 'faca de dois gumes' },
+    { en: 'to cut corners', pt: 'fazer de qualquer jeito' },
+    { en: 'in the long run', pt: 'a longo prazo' },
+    { en: 'a blessing in disguise', pt: 'males que vêm para o bem' },
+    { en: 'to go the extra mile', pt: 'fazer mais que o esperado' },
+    { en: 'to beat around the bush', pt: 'fazer rodeios' },
+    { en: 'the last straw', pt: 'a gota d\'água' },
+    { en: 'once in a blue moon', pt: 'muito raramente' },
+    { en: 'to be on the same page', pt: 'estar alinhado' },
+  ],
+  exercises: [
+    { type: 'fill', prompt: 'These complaints are just the tip of the ___.', answers: ['iceberg'] },
+    { type: 'fill', prompt: 'Social media is a double-edged ___.', answers: ['sword'] },
+    { type: 'fill', prompt: "Don't cut ___ — safety is more important than speed.", answers: ['corners'] },
+    { type: 'fill', prompt: 'It will be expensive now, but it will save money in the long ___.', answers: ['run'] },
+    { type: 'fill', prompt: 'Losing that job was a blessing in ___.', answers: ['disguise'] },
+    { type: 'fill', prompt: 'Stop beating around the ___ and tell me what happened.', answers: ['bush'] },
+    { type: 'fill', prompt: 'You hit the nail on the ___ — that is exactly the problem.', answers: ['head'] },
+    { type: 'fill', prompt: 'He was late again. That was the last ___.', answers: ['straw'] },
+    {
+      type: 'choice',
+      prompt: '"I only eat fast food once in a blue moon." =',
+      options: ['Como fast food toda semana.', 'Como fast food muito raramente.', 'Como fast food à noite.'],
+      answer: 1,
+    },
+    {
+      type: 'choice',
+      prompt: 'Onde idioms são MENOS adequados?',
+      options: ['Um artigo de opinião', 'Um e-mail para um colega', 'Um artigo científico'],
+      answer: 2,
+    },
+    {
+      type: 'choice',
+      prompt: '"Before the meeting, let\'s make sure we are…"',
+      options: ['on the same page', 'in the same book', 'at the same paper'],
+      answer: 0,
+    },
+    { type: 'fixError', prompt: 'She always goes the extra kilometre for her clients.', answers: ['She always goes the extra mile for her clients.'] },
+    { type: 'fixError', prompt: "It's late. Let's call it the day.", answers: ["It's late. Let's call it a day.", "It is late. Let's call it a day."] },
+    {
+      type: 'translate',
+      from: 'pt',
+      prompt: 'Vamos dar o pontapé inicial no projeto.',
+      answers: ["Let's get the ball rolling on the project.", "Let's get the ball rolling with the project.", 'Let us get the ball rolling on the project.'],
+    },
+    {
+      type: 'translate',
+      from: 'en',
+      prompt: 'The company is in hot water after the data leak.',
+      answers: ['A empresa está em apuros depois do vazamento de dados.', 'A empresa está em apuros após o vazamento de dados.', 'A empresa está em maus lençóis depois do vazamento de dados.', 'A empresa está em maus lençóis após o vazamento de dados.'],
+    },
+    {
+      type: 'writing',
+      prompt: 'Escreva um pequeno artigo de opinião (5–6 frases) sobre inteligência artificial no trabalho usando 2 ou 3 idioms desta unidade de forma natural.',
+      model: "Artificial intelligence is a double-edged sword. On the one hand, it can save companies time and money in the long run. On the other hand, firms that rush to replace workers may end up cutting corners on quality. The recent errors in automated customer service are probably just the tip of the iceberg. Businesses should adopt these tools carefully, with humans still in control.",
+      checklist: ['Idioms na forma fixa correta', 'No máximo 2–3 idioms', 'Registro adequado (artigo de opinião)'],
+    },
+  ],
+}

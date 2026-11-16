@@ -1,0 +1,20 @@
+import type { UnitData } from '../types'
+import { u01 } from './u01-alphabet'
+import { u02 } from './u02-pronouns'
+import { u03 } from './u03-to-be'
+import { u04 } from './u04-to-be-negative-questions'
+import { u05 } from './u05-articles'
+import { u06 } from './u06-plurals'
+import { u07 } from './u07-possessives'
+import { u08 } from './u08-demonstratives'
+import { u09 } from './u09-there-is'
+import { u10 } from './u10-present-simple'
+import { u11 } from './u11-present-simple-neg-q'
+import { u12 } from './u12-frequency-adverbs'
+import { u13 } from './u13-present-continuous'
+import { u14 } from './u14-prepositions'
+import { u15 } from './u15-can-imperative'
+import { u16 } from './u16-numbers-dates'
+
+/** Ordem da trilha do nível A1. */
+export const a1Units: UnitData[] = [u01, u02, u03, u04, u05, u06, u07, u08, u09, u10, u11, u12, u13, u14, u15, u16]
