@@ -1,4 +1,5 @@
 import { HashRouter, NavLink, Route, Routes, useParams } from 'react-router-dom'
+import { ThemePicker } from './components/ThemePicker'
 import { ConsolidationPage } from './pages/ConsolidationPage'
 import { GrammarPage } from './pages/GrammarPage'
 import { HomePage } from './pages/HomePage'
@@ -40,6 +41,7 @@ export default function App() {
             <NavLink to="/grammar">Gramática</NavLink>
             <NavLink to="/progress">Progresso</NavLink>
           </nav>
+          <ThemePicker />
         </header>
         <main>
           <Routes>

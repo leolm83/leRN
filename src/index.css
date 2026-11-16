@@ -33,8 +33,9 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* Escuro: segue o sistema quando nenhum tema foi escolhido… */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --paper: #121826;
     --sheet: #161d2d;
     --rule: #26344f;
@@ -50,6 +51,42 @@
     --hl-text: #fff8d6;
     color-scheme: dark;
   }
+}
+
+/* …ou quando escolhido no seletor. */
+:root[data-theme='dark'] {
+  --paper: #121826;
+  --sheet: #161d2d;
+  --rule: #26344f;
+  --margin-line: #e46a60;
+  --ink: #e4e9f2;
+  --graphite: #a9b1bf;
+  --graphite-light: #6f7889;
+  --highlighter: #6b5a12;
+  --ok: #63c496;
+  --warn: #e0ae55;
+  --bad: #f0857b;
+  --on-ink: #121826;
+  --hl-text: #fff8d6;
+  color-scheme: dark;
+}
+
+/* Sépia: folha amarelada, menos luz azul. Para estudar à noite sem o branco forte. */
+:root[data-theme='sepia'] {
+  --paper: #f3ead3;
+  --sheet: #f8f1dd;
+  --rule: #dccfae;
+  --margin-line: #c8553d;
+  --ink: #2e3550;
+  --graphite: #5c5443;
+  --graphite-light: #968a70;
+  --highlighter: #f2cf3b;
+  --ok: #3b7449;
+  --warn: #8a5a00;
+  --bad: #b03826;
+  --on-ink: #f8f1dd;
+  --hl-text: inherit;
+  color-scheme: light;
 }
 
 * {
@@ -192,6 +229,31 @@ small {
   color: var(--ink);
   font-weight: 700;
   border-bottom-color: var(--ink);
+}
+
+.theme-picker {
+  margin-left: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-size: 0.92rem;
+  color: var(--graphite);
+}
+.theme-picker select {
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid var(--graphite-light);
+  padding: 0.1rem 0.2rem;
+  cursor: pointer;
+}
+.theme-picker select:hover {
+  border-bottom-color: var(--ink);
+}
+.theme-picker option {
+  color: initial;
+  background: initial;
 }
 
 main {

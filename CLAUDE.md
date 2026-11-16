@@ -39,6 +39,8 @@ Antes de concluir uma tarefa: `npm test`, `npm run lint` e `npm run build` preci
 
 **Markdown da teoria** (`RichText`): só parágrafos, listas `- ` (linhas seguintes sem `- ` continuam o item), `**negrito**`, `*itálico*` (pode conter negrito) e `` `código` ``. **Não** há listas numeradas (use `- **1.** …`), listas aninhadas, tachado `~~` nem HTML.
 
+**Temas:** os tokens de cor ficam em `:root` (claro) em `src/index.css`. Os temas são `[data-theme='dark' | 'sepia']`, e o escuro também é aplicado via `prefers-color-scheme` quando não há `data-theme`. A escolha fica salva em `lern:theme` (`src/state/theme.ts`) e é aplicada antes da primeira pintura por um script inline no `index.html`. Um token novo precisa existir em todos os temas.
+
 **Lint:** arquivos `.tsx` de componente só exportam componentes (regra only-export-components) — funções utilitárias vão para `.ts` separados.
 
 ## Convenções de conteúdo
