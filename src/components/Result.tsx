@@ -30,13 +30,13 @@ export function Result({ result, wrong, onRetry, onTheory, next }: Props) {
       <div className={`score ${passed ? 'pass' : 'fail'}`}>
         <span className="value">{Math.round(score * 100)}%</span>
         <span>
-          {result.correct} de {result.total} corretas · +{result.correct * XP_PER_CORRECT} XP
+          {result.correct} de {result.total} corretas, +{result.correct * XP_PER_CORRECT} XP
         </span>
       </div>
       <p>
         {passed
           ? 'Aprovado! Os itens que você errou foram para a revisão.'
-          : `Você precisa de ${Math.round(PASS_SCORE * 100)}% para avançar. Revise a teoria e tente de novo — os erros já estão na sua revisão.`}
+          : `Você precisa de ${Math.round(PASS_SCORE * 100)}% para avançar. Revise a teoria e tente de novo. Os erros já estão na sua revisão.`}
       </p>
 
       {wrong.length > 0 && (
@@ -56,7 +56,7 @@ export function Result({ result, wrong, onRetry, onTheory, next }: Props) {
       <div className="row">
         {passed && next && (
           <Link className="btn primary" to={next.to}>
-            {next.label} →
+            {next.label}
           </Link>
         )}
         <button className={`btn ${passed ? '' : 'primary'}`} onClick={onRetry}>

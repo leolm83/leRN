@@ -106,7 +106,7 @@ function VocabCard({ pt, en, onDone }: { pt: string; en: string; onDone: (s: Gra
 
   return (
     <div className="exercise">
-      <p className="exercise-kind">Vocabulário — escreva em inglês</p>
+      <p className="exercise-kind">Escreva em inglês</p>
       <p className="prompt big">{pt}</p>
       <input
         ref={inputRef}
@@ -133,9 +133,16 @@ function VocabCard({ pt, en, onDone }: { pt: string; en: string; onDone: (s: Gra
         <div className={`feedback ${status}`} role="status">
           <strong>{status === 'correct' ? 'Correto!' : status === 'almost' ? 'Quase! Confira a grafia.' : 'Não foi dessa vez.'}</strong>
           {status !== 'correct' && (
-            <p>
-              Resposta: <span className="answer">{en}</span>
-            </p>
+            <div className="correction">
+              <p className={status === 'almost' ? 'given almost' : 'given struck'}>
+                <span className="sr-only">Você escreveu: </span>
+                {value}
+              </p>
+              <p className="pen">
+                <span className="sr-only">Resposta: </span>
+                <span className="answer">{en}</span>
+              </p>
+            </div>
           )}
           <button ref={nextRef} className="btn primary" onClick={() => onDone(status)}>
             Continuar

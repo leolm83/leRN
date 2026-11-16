@@ -73,7 +73,7 @@ export function LessonPage() {
             }}
           />
           <button className="btn link" onClick={() => setStep('theory')}>
-            ← Rever a teoria
+            Rever a teoria
           </button>
         </>
       )}

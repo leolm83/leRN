@@ -26,14 +26,18 @@ function ConsolidationCard({ block, state }: { block: Consolidation; state: Prog
   const solid = rec && rec.bestScore >= PASS_SCORE
   const body = (
     <>
-      <span className={`dot ${solid ? 'done' : open ? 'open' : ''}`}>✦</span>
+      <span className={`margin-num ${solid ? 'done' : ''}`} aria-hidden="true">
+        ✦
+      </span>
       <span className="unit-title">
-        Consolidação · unidades {block.units[0]}–{block.units[1]} <span className="tag">opcional</span>
-        <small className="muted">
-          {open ? `${block.title} — resumo + ${block.questions.length} questões explicadas.` : 'Libera ao concluir as unidades do bloco. Não bloqueia o avanço.'}
+        Consolidação das unidades {block.units[0]} a {block.units[1]} <span className="tag">opcional</span>
+        <small>
+          {open
+            ? `${block.title}: resumo e ${block.questions.length} questões explicadas.`
+            : 'Libera quando você concluir essas unidades. Não bloqueia o avanço.'}
         </small>
       </span>
-      <span className="unit-score">{rec ? pct(rec.bestScore) : open ? '' : '🔒'}</span>
+      <span className="unit-score">{rec ? pct(rec.bestScore) : ''}</span>
     </>
   )
   return open ? (
@@ -54,22 +58,23 @@ export function HomePage() {
 
   return (
     <div className="page">
-      <section className="stats">
+      <section className="stats" aria-label="Seu estudo">
         <div className="stat">
-          <span className="value">{streak}</span>
-          <span className="label">{streak === 1 ? 'dia seguido' : 'dias seguidos'}</span>
+          <span className="label">Sequência</span>
+          <span className="value">
+            {streak} <small>{streak === 1 ? 'dia' : 'dias'}</small>
+          </span>
         </div>
         <div className="stat">
-          <span className="value">{state.xp}</span>
           <span className="label">XP total</span>
+          <span className="value">{state.xp}</span>
         </div>
         <div className="stat goal">
+          <span className="label">Meta de hoje</span>
           <span className="value">
-            {todayXp}
-            <small> / {DAILY_GOAL_XP}</small>
+            {todayXp} <small>de {DAILY_GOAL_XP} XP</small>
           </span>
-          <span className="label">meta de hoje</span>
-          <div className="bar small">
+          <div className="bar small" role="progressbar" aria-valuemin={0} aria-valuemax={DAILY_GOAL_XP} aria-valuenow={todayXp}>
             <div style={{ width: `${Math.min(100, (todayXp / DAILY_GOAL_XP) * 100)}%` }} />
           </div>
         </div>
@@ -79,9 +84,11 @@ export function HomePage() {
         {next ? (
           <Link className="cta" to={`/lesson/${next.id}`}>
             <span className="muted">
-              Continuar — {next.level}, unidade {next.number}
+              Continuar: {next.level}, unidade {next.number}
             </span>
-            <strong>{next.title}</strong>
+            <strong>
+              <span className="hl">{next.title}</span>
+            </strong>
           </Link>
         ) : (
           <div className="cta">
@@ -89,8 +96,7 @@ export function HomePage() {
           </div>
         )}
         <Link className={`cta secondary ${due ? '' : 'quiet'}`} to="/review">
-          <span className="muted">Revisão</span>
-          <strong>{due ? `${due} ${due === 1 ? 'item pendente' : 'itens pendentes'}` : 'Nada pendente hoje'}</strong>
+          {due ? `Revisão: ${due} ${due === 1 ? 'item para hoje' : 'itens para hoje'}` : 'Revisão: nada para hoje'}
         </Link>
       </section>
 
@@ -105,10 +111,10 @@ export function HomePage() {
               <span className="level-id">{level.id}</span>
               <span className="level-title">
                 {level.title}
-                <small className="muted">{level.description}</small>
+                <small>{level.description}</small>
               </span>
               <span className="level-status">
-                {passed ? '✓ concluído' : level.units.length ? `${doneUnits}/${level.units.length}` : 'em breve'}
+                {passed ? 'concluído' : level.units.length ? `${doneUnits} de ${level.units.length}` : 'em breve'}
               </span>
             </summary>
 
@@ -127,21 +133,29 @@ export function HomePage() {
                   const open = isUnitUnlocked(state, levels, u.id)
                   const rec = state.lessons[u.id]
                   const ok = isUnitPassed(state, u.id)
+                  const current = next?.id === u.id
                   const body = (
                     <>
-                      <span className={`dot ${ok ? 'done' : open ? 'open' : ''}`}>{ok ? '✓' : u.number}</span>
+                      <span className="margin-num">{u.number}</span>
                       <span className="unit-title">
-                        {u.title}
-                        <small className="muted">{u.summary}</small>
+                        {ok && (
+                          <span className="check" aria-label="concluída">
+                            ✓{' '}
+                          </span>
+                        )}
+                        {current ? <span className="hl">{u.title}</span> : u.title}
+                        <small>{u.summary}</small>
                       </span>
-                      <span className="unit-score">{rec ? pct(rec.bestScore) : open ? '' : '🔒'}</span>
+                      <span className="unit-score">
+                        {rec ? pct(rec.bestScore) : open ? '' : <span className="sr-only">bloqueada</span>}
+                      </span>
                     </>
                   )
                   const blocks = level.consolidations.filter((c) => c.units[1] === u.number)
                   return [
                     <li key={u.id}>
                       {open ? (
-                        <Link to={`/lesson/${u.id}`} className="unit">
+                        <Link to={`/lesson/${u.id}`} className={`unit ${current ? 'current' : ''}`}>
                           {body}
                         </Link>
                       ) : (
@@ -158,21 +172,25 @@ export function HomePage() {
                 <li>
                   {isLevelTestUnlocked(state, levels, level.id) ? (
                     <Link to={`/test/${level.id}`} className="unit test">
-                      <span className={`dot ${passed ? 'done' : 'open'}`}>★</span>
+                      <span className={`margin-num ${passed ? 'done' : ''}`} aria-hidden="true">
+                        ★
+                      </span>
                       <span className="unit-title">
                         Prova do nível {level.id}
-                        <small className="muted">{level.test.length} exercícios de todas as unidades. 80% para passar.</small>
+                        <small>{level.test.length} exercícios de todas as unidades. Acerte 80% para abrir o próximo nível.</small>
                       </span>
                       <span className="unit-score">{state.levelTests[level.id] ? pct(state.levelTests[level.id]!.bestScore) : ''}</span>
                     </Link>
                   ) : (
                     <div className="unit test disabled">
-                      <span className="dot">★</span>
+                      <span className="margin-num" aria-hidden="true">
+                        ★
+                      </span>
                       <span className="unit-title">
                         Prova do nível {level.id}
-                        <small className="muted">Libera quando todas as unidades estiverem aprovadas.</small>
+                        <small>Libera quando todas as unidades estiverem concluídas.</small>
                       </span>
-                      <span className="unit-score">🔒</span>
+                      <span className="unit-score" />
                     </div>
                   )}
                 </li>

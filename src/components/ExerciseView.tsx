@@ -21,6 +21,7 @@ interface Props {
 /** Mostra um exercício, corrige a resposta e exibe o feedback. Chama onDone ao clicar em "Continuar". */
 export function ExerciseView({ exercise, onDone }: Props) {
   const [result, setResult] = useState<GradeResult | null>(null)
+  const [given, setGiven] = useState('')
   const continueRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -28,7 +29,10 @@ export function ExerciseView({ exercise, onDone }: Props) {
   }, [result])
 
   const submit = (answer: string) => {
-    if (!result) setResult(grade(exercise, answer))
+    if (!result) {
+      setGiven(answer)
+      setResult(grade(exercise, answer))
+    }
   }
 
   const title =
@@ -50,9 +54,18 @@ export function ExerciseView({ exercise, onDone }: Props) {
             {result.status === 'correct' ? 'Correto!' : result.status === 'almost' ? 'Quase! Confira a grafia.' : 'Não foi dessa vez.'}
           </strong>
           {result.status !== 'correct' && exercise.type !== 'writing' && (
-            <p>
-              Resposta: <span className="answer">{result.expected}</span>
-            </p>
+            <div className="correction">
+              {exercise.type !== 'choice' && (
+                <p className={result.status === 'almost' ? 'given almost' : 'given struck'}>
+                  <span className="sr-only">Você escreveu: </span>
+                  {given}
+                </p>
+              )}
+              <p className="pen">
+                <span className="sr-only">Resposta: </span>
+                <span className="answer">{result.expected}</span>
+              </p>
+            </div>
           )}
           {result.notes.map((n) => (
             <p key={n} className="tip">
@@ -60,7 +73,7 @@ export function ExerciseView({ exercise, onDone }: Props) {
             </p>
           ))}
           {exercise.explanation && (
-            <p className="explanation">
+            <p className="explanation margin-note">
               <Inline text={exercise.explanation} />
             </p>
           )}

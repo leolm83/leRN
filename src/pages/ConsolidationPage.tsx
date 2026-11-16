@@ -19,7 +19,7 @@ export function ConsolidationPage() {
   if (!block) return <NotFoundInline />
 
   const units = block.unitIds.flatMap((u) => getUnit(u) ?? [])
-  const rangeLabel = `${block.level} · unidades ${block.units[0]}–${block.units[1]}`
+  const rangeLabel = `${block.level}, unidades ${block.units[0]} a ${block.units[1]}`
   const record = state.consolidations[block.id]
 
   const start = () => {
@@ -30,7 +30,7 @@ export function ConsolidationPage() {
   const header = (
     <>
       <p className="crumbs">
-        <Link to="/">Trilha</Link> › Consolidação {rangeLabel}
+        <Link to="/">Trilha</Link> › Consolidação ({rangeLabel})
       </p>
       <h1>{block.title}</h1>
     </>
@@ -83,13 +83,13 @@ export function ConsolidationPage() {
           <div className={`score ${solid ? 'pass' : 'fail'}`}>
             <span className="value">{Math.round(score * 100)}%</span>
             <span>
-              {result.correct} de {result.total} corretas · +{result.correct * XP_PER_CORRECT} XP
+              {result.correct} de {result.total} corretas, +{result.correct * XP_PER_CORRECT} XP
             </span>
           </div>
           <p>
             {solid
               ? 'Conteúdo consolidado. Volte aqui de vez em quando para manter as regras frescas.'
-              : 'Vale revisar: releia o resumo e as explicações abaixo. Esta prova não bloqueia nada — refaça quando quiser.'}
+              : 'Vale revisar: releia o resumo e as explicações abaixo. Esta prova não bloqueia nada: refaça quando quiser.'}
           </p>
           {misses.length > 0 && (
             <>

@@ -31,7 +31,7 @@ describe('Consolidação (fluxo completo)', () => {
   it('aparece na trilha, mostra o resumo, explica os erros e salva a nota sem bloquear nada', () => {
     seed(block.unitIds)
     render(<App />)
-    fireEvent.click(screen.getAllByText(/Consolidação · unidades 1–4/)[0])
+    fireEvent.click(screen.getAllByText(/Consolidação das unidades 1 a 4/)[0])
     expect(screen.getByRole('heading', { level: 2, name: 'Resumo do bloco' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Começar' }))
 

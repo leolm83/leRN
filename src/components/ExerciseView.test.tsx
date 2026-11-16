@@ -54,7 +54,7 @@ describe('App', () => {
 
   it('abre a primeira lição, pratica e salva o progresso', () => {
     render(<App />)
-    fireEvent.click(screen.getByText(/Continuar — A1, unidade 1/))
+    fireEvent.click(screen.getByText(/Continuar: A1, unidade 1/))
     expect(screen.getByRole('heading', { level: 1, name: 'Alfabeto, maiúsculas e pontuação' })).toBeInTheDocument()
     fireEvent.click(screen.getByText(/Praticar/))
     // Primeiro exercício: múltipla escolha, opção correta "I live in Brazil."

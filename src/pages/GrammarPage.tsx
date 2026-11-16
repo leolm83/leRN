@@ -61,7 +61,7 @@ export function GrammarPage() {
               <TheorySectionView key={e.section.title} section={e.section} />
             ))}
             <Link to={`/lesson/${unit.id}`} className="btn link">
-              Ir para a unidade →
+              Ir para a unidade
             </Link>
           </details>
         )

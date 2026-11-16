@@ -44,7 +44,7 @@ export function ProgressPage() {
       <section className="stats">
         <div className="stat">
           <span className="value">{currentStreak(state, today)}</span>
-          <span className="label">dias seguidos</span>
+          <span className="label">Sequência (dias)</span>
         </div>
         <div className="stat">
           <span className="value">{state.xp}</span>
@@ -52,11 +52,11 @@ export function ProgressPage() {
         </div>
         <div className="stat">
           <span className="value">{deck.length}</span>
-          <span className="label">itens na revisão</span>
+          <span className="label">Itens na revisão</span>
         </div>
         <div className="stat">
           <span className="value">{dueCards(state.deck, today).length}</span>
-          <span className="label">pendentes hoje</span>
+          <span className="label">Pendentes hoje</span>
         </div>
       </section>
 
@@ -84,7 +84,7 @@ export function ProgressPage() {
             {levels.map((l) => (
               <tr key={l.id}>
                 <td>
-                  {l.id} — {l.title}
+                  {l.id} {l.title}
                 </td>
                 <td>{l.units.length ? `${l.units.filter((u) => isUnitPassed(state, u.id)).length} / ${l.units.length}` : 'em breve'}</td>
                 <td>{state.levelTests[l.id] ? `${Math.round(state.levelTests[l.id]!.bestScore * 100)}%` : '—'}</td>
@@ -114,8 +114,8 @@ export function ProgressPage() {
                 return (
                   <tr key={c.id} className={rec && rec.bestScore < PASS_SCORE ? 'needs-review' : undefined}>
                     <td>
-                      {open ? <Link to={`/consolidation/${c.id}`}>{`${l.id} ${c.units[0]}–${c.units[1]}`}</Link> : `${l.id} ${c.units[0]}–${c.units[1]}`}{' '}
-                      <span className="muted">· {c.title}</span>
+                      {open ? <Link to={`/consolidation/${c.id}`}>{`${l.id}, unidades ${c.units[0]} a ${c.units[1]}`}</Link> : `${l.id}, unidades ${c.units[0]} a ${c.units[1]}`}
+                      <small className="muted">{c.title}</small>
                     </td>
                     <td>{rec ? `${Math.round(rec.bestScore * 100)}%` : '—'}</td>
                     <td>{status}</td>
