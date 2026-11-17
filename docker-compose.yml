@@ -1,0 +1,17 @@
+services:
+  lern:
+    build:
+      context: .
+      target: runtime
+    image: lern:latest
+    container_name: lern
+    ports:
+      - "${LERN_PORT:-8080}:8080"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
