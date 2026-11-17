@@ -3,7 +3,7 @@ import type { FastifyInstance } from 'fastify'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { emptyProgress } from '../src/engine/progress'
 import { buildApp, SESSION_COOKIE } from './app'
-import { createSessionToken, hashPassword, isPasswordHash, verifyPassword, verifySessionToken } from './auth'
+import { createSessionToken, FailureLimiter, hashPassword, isPasswordHash, verifyPassword, verifySessionToken } from './auth'
 import { MemoryProgressRepo } from './repo'
 
 const PASSWORD = 'senha-de-teste'
@@ -11,11 +11,11 @@ const SECRET = 'x'.repeat(40)
 const passwordHash = hashPassword(PASSWORD)
 
 describe('auth', () => {
-  it('confere a senha pelo hash scrypt', () => {
+  it('confere a senha pelo hash scrypt', async () => {
     expect(isPasswordHash(passwordHash)).toBe(true)
-    expect(verifyPassword(PASSWORD, passwordHash)).toBe(true)
-    expect(verifyPassword('outra', passwordHash)).toBe(false)
-    expect(verifyPassword(PASSWORD, 'lixo')).toBe(false)
+    await expect(verifyPassword(PASSWORD, passwordHash)).resolves.toBe(true)
+    await expect(verifyPassword('outra', passwordHash)).resolves.toBe(false)
+    await expect(verifyPassword(PASSWORD, 'lixo')).resolves.toBe(false)
   })
 
   it('rejeita token adulterado, de outro segredo ou expirado', () => {
@@ -67,6 +67,42 @@ describe('API', () => {
     expect((await wrong()).statusCode).toBe(401)
     expect((await wrong()).statusCode).toBe(401)
     expect((await wrong()).statusCode).toBe(429)
+  })
+
+  it('X-Forwarded-For forjado não burla o limite por IP (só confia no nginx)', async () => {
+    await app.close()
+    app = await buildApp({ repo, passwordHash, sessionSecret: SECRET, cookieSecure: true, loginMax: 3, trustProxyHops: 1 })
+    const codes: number[] = []
+    for (let i = 0; i < 5; i++) {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/login',
+        payload: { password: 'errada' },
+        remoteAddress: '172.20.0.3', // o nginx
+        headers: { 'x-forwarded-for': `10.0.0.${i}, 203.0.113.7` }, // forjado + IP real visto pelo nginx
+      })
+      codes.push(res.statusCode)
+    }
+    expect(codes).toEqual([401, 401, 401, 429, 429])
+  })
+
+  it('limite global bloqueia novos logins após muitas falhas, mesmo de IPs diferentes', async () => {
+    await app.close()
+    app = await buildApp({ repo, passwordHash, sessionSecret: SECRET, cookieSecure: true, loginGlobalMax: 4 })
+    const attempt = (password: string, ip: string) =>
+      app.inject({ method: 'POST', url: '/api/login', payload: { password }, remoteAddress: ip })
+    expect((await attempt(PASSWORD, '10.0.0.1')).statusCode).toBe(200) // acerto não consome a cota
+    await Promise.all([1, 2, 3, 4].map((i) => attempt('errada', `10.0.1.${i}`)))
+    expect((await attempt('errada', '10.0.2.1')).statusCode).toBe(429)
+    expect((await attempt(PASSWORD, '10.0.2.2')).statusCode).toBe(429)
+  })
+
+  it('FailureLimiter libera depois da janela', () => {
+    const l = new FailureLimiter(2, 1000)
+    l.record(0)
+    l.record(10)
+    expect(l.blocked(500)).toBe(true)
+    expect(l.blocked(1011)).toBe(false)
   })
 
   it('logout limpa o cookie', async () => {

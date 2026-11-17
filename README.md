@@ -23,7 +23,9 @@ docker compose up -d --build   # http://localhost:8080
 
 Sobem três serviços: `web` (nginx com o app e proxy de `/api`), `api` (Node) e `db` (Postgres 17, volume `pgdata`). Só o `web` publica porta. O progresso fica no banco e sobrevive a `docker compose down`; **`docker compose down -v` apaga o volume**. Backup do banco: `docker compose exec db pg_dump -U lern lern > backup.sql`.
 
-**Exposto na internet:** coloque um proxy com HTTPS na frente (Caddy, Cloudflare Tunnel, Traefik…) e mantenha `COOKIE_SECURE=true`. Sem HTTPS a senha trafega em texto puro. Para testar em `http://localhost`, use `COOKIE_SECURE=false`.
+**Exposto na internet:** coloque um proxy com HTTPS na frente (Caddy, Cloudflare Tunnel, Traefik…) e mantenha `COOKIE_SECURE=true`; com esse proxy na frente, use `TRUST_PROXY_HOPS=2` (é como a API descobre o IP real para limitar tentativas de login). Sem HTTPS a senha trafega em texto puro. Para testar em `http://localhost`, use `COOKIE_SECURE=false`.
+
+Login: 5 tentativas por minuto por IP e, no total, 20 senhas erradas a cada 10 minutos (depois disso novos logins ficam bloqueados até a janela passar; sessões já abertas continuam valendo). Sessões duram 30 dias; para derrubar todas (ex.: cookie vazado), troque o `SESSION_SECRET`.
 
 Ao entrar pela primeira vez, o progresso que já estava no navegador é enviado ao servidor (se o servidor estiver vazio). Sem conexão, o app continua funcionando com a cópia local e envia as mudanças quando a conexão volta; se outro aparelho tiver gravado uma versão mais nova nesse meio-tempo, a do servidor vence.
 

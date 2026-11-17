@@ -25,6 +25,12 @@ if (sessionSecret.length < 32) {
   process.exit(1)
 }
 
+const trustProxyHops = Number(process.env.TRUST_PROXY_HOPS ?? 1)
+if (!Number.isInteger(trustProxyHops) || trustProxyHops < 0) {
+  console.error('TRUST_PROXY_HOPS precisa ser um inteiro >= 0 (1 = só o nginx; 2 = nginx + proxy HTTPS)')
+  process.exit(1)
+}
+
 const pool = new pg.Pool({ connectionString: databaseUrl, max: 5 })
 const repo = new PgProgressRepo(pool)
 await repo.init()
@@ -34,7 +40,7 @@ const app = await buildApp({
   passwordHash,
   sessionSecret,
   cookieSecure: process.env.COOKIE_SECURE !== 'false',
-  trustProxy: true,
+  trustProxyHops: trustProxyHops || undefined,
   logger: true,
 })
 

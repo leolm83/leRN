@@ -28,6 +28,7 @@ services:
       LERN_PASSWORD_HASH: ${LERN_PASSWORD_HASH:?gere com npm run hash-password}
       SESSION_SECRET: ${SESSION_SECRET:?defina SESSION_SECRET no .env}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
     depends_on:
       db:
         condition: service_healthy

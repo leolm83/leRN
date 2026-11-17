@@ -1,4 +1,7 @@
-import { createHmac, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
+import { createHmac, randomBytes, scrypt, scryptSync, timingSafeEqual } from 'node:crypto'
+import { promisify } from 'node:util'
+
+const scryptAsync = promisify(scrypt) as (password: string, salt: Buffer, keylen: number) => Promise<Buffer>
 
 /**
  * Senha: hash scrypt no formato `scrypt:<salt hex>:<hash hex>`.
@@ -12,12 +15,13 @@ export function hashPassword(password: string): string {
   return `scrypt:${salt.toString('hex')}:${hash.toString('hex')}`
 }
 
-export function verifyPassword(password: string, stored: string): boolean {
+/** Assíncrono: o scrypt roda no threadpool e não trava o servidor durante tentativas de login. */
+export async function verifyPassword(password: string, stored: string): Promise<boolean> {
   const [scheme, saltHex, hashHex] = stored.split(':')
   if (scheme !== 'scrypt' || !saltHex || !hashHex) return false
   const expected = Buffer.from(hashHex, 'hex')
   if (expected.length !== KEY_LEN) return false
-  const actual = scryptSync(password, Buffer.from(saltHex, 'hex'), KEY_LEN)
+  const actual = await scryptAsync(password, Buffer.from(saltHex, 'hex'), KEY_LEN)
   return timingSafeEqual(actual, expected)
 }
 
@@ -47,4 +51,40 @@ export function verifySessionToken(token: string | undefined, secret: string, no
   if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return false
   const expires = Number(parts[1])
   return Number.isFinite(expires) && expires > now
+}
+
+/**
+ * Limite global de logins errados, independente de IP: freia força bruta distribuída
+ * (ou com IP forjado). Só falhas contam, então o login certo não consome a cota.
+ */
+export class FailureLimiter {
+  private failures: number[] = []
+  private readonly max: number
+  private readonly windowMs: number
+
+  constructor(max: number, windowMs: number) {
+    this.max = max
+    this.windowMs = windowMs
+  }
+
+  private prune(now: number) {
+    const from = now - this.windowMs
+    while (this.failures.length && this.failures[0] <= from) this.failures.shift()
+  }
+
+  blocked(now = Date.now()): boolean {
+    this.prune(now)
+    return this.failures.length >= this.max
+  }
+
+  /** Conta a tentativa antes de verificar a senha (requisições paralelas não furam o limite). */
+  record(now = Date.now()): void {
+    this.prune(now)
+    this.failures.push(now)
+  }
+
+  /** Senha certa: desconta a tentativa registrada. */
+  forgive(): void {
+    this.failures.pop()
+  }
 }
