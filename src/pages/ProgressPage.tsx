@@ -5,9 +5,19 @@ import { addDays } from '../engine/dates'
 import { currentStreak, isConsolidationUnlocked, isUnitPassed, parseProgress, PASS_SCORE } from '../engine/progress'
 import { dueCards } from '../engine/srs'
 import { DAILY_GOAL_XP, useProgress } from '../state/ProgressContext'
+import type { SyncStatus } from '../state/sync'
+
+const SYNC_TEXT: Record<SyncStatus, string> = {
+  connecting: 'Conectando ao servidor…',
+  syncing: 'Salvando no servidor…',
+  saved: 'Progresso salvo no servidor.',
+  offline:
+    'Sem conexão com o servidor: o progresso fica salvo neste navegador e é enviado quando a conexão voltar.',
+  auth: 'Sessão expirada.',
+}
 
 export function ProgressPage() {
-  const { state, today, replaceState, reset } = useProgress()
+  const { state, today, replaceState, reset, sync, logout } = useProgress()
   const fileRef = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState('')
   const [confirmReset, setConfirmReset] = useState(false)
@@ -139,7 +149,9 @@ export function ProgressPage() {
       </div>
 
       <h2>Backup</h2>
-      <p className="muted">O progresso fica salvo neste navegador. Exporte um backup para não perdê-lo ou para levar a outro computador.</p>
+      <p className="muted">
+        {SYNC_TEXT[sync]} Você também pode exportar uma cópia em JSON.
+      </p>
       <div className="row">
         <button className="btn" onClick={exportBackup}>
           Exportar progresso
@@ -158,6 +170,11 @@ export function ProgressPage() {
             e.target.value = ''
           }}
         />
+        {sync !== 'offline' && (
+          <button className="btn" onClick={() => void logout()}>
+            Sair
+          </button>
+        )}
         {!confirmReset ? (
           <button className="btn danger" onClick={() => setConfirmReset(true)}>
             Apagar progresso

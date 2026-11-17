@@ -14,10 +14,21 @@ FROM deps AS test
 COPY . .
 RUN npm run lint && npm test
 
-# ---------- build: gera o bundle estático em /app/dist
+# ---------- build: bundle estático (/app/dist) e API em um único arquivo (/app/server/dist/server.mjs)
 FROM deps AS build
 COPY . .
 RUN npm run build
+
+# ---------- api: Node só com o bundle da API (sem node_modules)
+FROM node:${NODE_VERSION}-alpine AS api
+ENV NODE_ENV=production PORT=3000
+WORKDIR /app
+COPY --from=build --chown=node:node /app/server/dist/server.mjs ./server.mjs
+USER node
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1
+CMD ["node", "server.mjs"]
 
 # ---------- runtime: nginx sem root servindo só os arquivos estáticos
 FROM nginxinc/nginx-unprivileged:${NGINX_VERSION}-alpine AS runtime

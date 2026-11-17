@@ -29,3 +29,7 @@ coverage
 
 # Configuração local do Claude Code
 .claude/settings.local.json
+
+# Segredos do docker compose / API local
+.env
+.env.local

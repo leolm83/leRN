@@ -1,6 +1,6 @@
 # leRN
 
-App web pessoal para aprender **inglês escrito** do A1 ao C2 (sem foco em fala). Teoria em PT-BR, exercícios em inglês, correção offline com gabarito fixo (sem IA). React 19 + Vite + TypeScript, React Router (HashRouter), sem backend: progresso no `localStorage`.
+App web pessoal para aprender **inglês escrito** do A1 ao C2 (sem foco em fala). Teoria em PT-BR, exercícios em inglês, correção offline com gabarito fixo (sem IA). React 19 + Vite + TypeScript, React Router (HashRouter). Progresso salvo em Postgres por uma API pequena (`server/`, um usuário só, login por senha); o `localStorage` é cache offline.
 
 ## Comandos
 
@@ -8,7 +8,10 @@ App web pessoal para aprender **inglês escrito** do A1 ao C2 (sem foco em fala)
 npm run dev      # servidor de desenvolvimento
 npm test         # vitest (motor, conteúdo e UI) — rodar após qualquer mudança de conteúdo
 npm run lint     # oxlint
-npm run build    # tsc -b + vite build
+npm run build    # tsc -b + vite build + bundle da API (esbuild → server/dist/server.mjs)
+npm run dev:server     # API local (precisa de .env.local com DATABASE_URL etc.)
+npm run hash-password  # gera LERN_PASSWORD_HASH
+docker compose up -d --build  # web (nginx) + api (Node) + db (Postgres); config em .env
 ```
 
 Antes de concluir uma tarefa: `npm test`, `npm run lint` e `npm run build` precisam passar.
@@ -22,13 +25,15 @@ Antes de concluir uma tarefa: `npm test`, `npm run lint` e `npm run build` preci
 - `src/engine/` — lógica pura: `grader.ts` (correção), `srs.ts` (Leitner), `progress.ts` (XP, streak, desbloqueios).
 - `src/components/` — exercícios, `RichText`/`parseInline`/`parseBlocks` (markdown simples), quiz de consolidação.
 - `src/pages/` — Trilha, Lição, Prova, Consolidação, Revisão, Gramática, Progresso.
-- `src/state/ProgressContext.tsx` — estado global + persistência (`storage.ts`, chave `lern:progress:v1`).
+- `src/state/ProgressContext.tsx` — estado global; cache local em `src/storage.ts` (`lern:progress:v1`, `lern:sync:v1`).
+- `src/state/sync.ts` — `SyncEngine`: reconcilia cache e servidor (PUT com debounce, revisão otimista, 409 → servidor vence, offline com retry). `src/api.ts` — cliente HTTP.
+- `server/` — API Fastify: `app.ts` (rotas `/api/login|logout|session|progress|health`), `auth.ts` (scrypt + cookie HMAC), `repo.ts` (Postgres, uma linha `progress` com `jsonb` + `revision`). Valida com `parseProgress` de `src/engine/progress.ts` — mantenha o engine puro (sem DOM), ele roda no servidor.
 
 ## Regras importantes
 
 **IDs derivam da posição.** Ids de unidade/exercício/consolidação (`a1-u05`, `a1-u05-e03`, `a1-c02`) são gerados pela ordem nos arrays. Reordenar ou inserir no meio quebra o progresso salvo do usuário: **acrescente no fim**.
 
-**Progresso salvo.** `ProgressState` tem `version: 1`; campos novos entram com default em `emptyProgress()` (o `parseProgress` faz spread dos defaults). Não mude o formato de forma incompatível.
+**Progresso salvo.** `ProgressState` tem `version: 1`; campos novos entram com default em `emptyProgress()` (o `parseProgress` faz spread dos defaults). Não mude o formato de forma incompatível — o mesmo JSON está no Postgres e no cache local.
 
 **Corretor (`grader.ts`).** `normalize` ignora caixa e pontuação e **expande contrações**. Consequências:
 - `'s` só vira `is` depois de pronomes; `'d` sempre vira `would`. Então, para Present Perfect / Past Perfect, liste as duas formas nas respostas (`"She has gone"` e `"She's gone"`, `"I had left"` e `"I'd left"`).

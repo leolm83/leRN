@@ -1,17 +1,68 @@
+# Configuração em .env (copie de .env.example).
 services:
-  lern:
+  web:
     build:
       context: .
       target: runtime
-    image: lern:latest
-    container_name: lern
+    image: lern-web:latest
     ports:
       - "${LERN_PORT:-8080}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [front]
     restart: unless-stopped
     read_only: true
     tmpfs:
       - /tmp
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+  api:
+    build:
+      context: .
+      target: api
+    image: lern-api:latest
+    environment:
+      DATABASE_URL: postgres://lern:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@db:5432/lern
+      LERN_PASSWORD_HASH: ${LERN_PASSWORD_HASH:?gere com npm run hash-password}
+      SESSION_SECRET: ${SESSION_SECRET:?defina SESSION_SECRET no .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [front, back]
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: lern
+      POSTGRES_DB: lern
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lern -d lern"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks: [back]
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+    security_opt: [no-new-privileges:true]
+
+networks:
+  front:
+  back:
+    internal: true
+
+volumes:
+  pgdata:

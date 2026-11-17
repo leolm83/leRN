@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { httpClient, login as apiLogin, logout as apiLogout, type LoginResult } from '../api'
 import type { LevelId, Unit } from '../content/types'
 import { toDay } from '../engine/dates'
 import {
@@ -11,7 +12,8 @@ import {
   type ProgressState,
 } from '../engine/progress'
 import { review } from '../engine/srs'
-import { clearProgress, loadProgress, saveProgress } from '../storage'
+import { clearProgress, loadProgress, loadSyncMeta, saveProgress, saveSyncMeta } from '../storage'
+import { SyncEngine, type SyncStatus } from './sync'
 
 export const XP_PER_REVIEW = 5
 export const DAILY_GOAL_XP = 150
@@ -25,14 +27,66 @@ interface ProgressApi {
   reviewCard: (key: string, correct: boolean) => void
   replaceState: (s: ProgressState) => void
   reset: () => void
+  /** Estado da sincronização com o servidor. */
+  sync: SyncStatus
+  /** Aviso quando o servidor tinha uma versão mais nova e ela substituiu a local. */
+  conflictNotice: boolean
+  dismissConflict: () => void
+  login: (password: string) => Promise<LoginResult>
+  logout: () => Promise<void>
 }
 
 const Ctx = createContext<ProgressApi | null>(null)
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<ProgressState>(loadProgress)
+  const [sync, setSync] = useState<SyncStatus>('connecting')
+  const [conflictNotice, setConflictNotice] = useState(false)
+  const engineRef = useRef<SyncEngine | null>(null)
 
-  useEffect(() => saveProgress(state), [state])
+  useEffect(() => {
+    const engine = new SyncEngine(loadProgress(), {
+      client: httpClient,
+      meta: loadSyncMeta(),
+      onMeta: saveSyncMeta,
+      onRemote: setState,
+      onStatus: setSync,
+      onConflict: () => setConflictNotice(true),
+    })
+    engineRef.current = engine
+    void engine.connect()
+
+    const retry = () => engine.retry()
+    const onVisibility = () => (document.visibilityState === 'hidden' ? engine.flushNow() : engine.retry())
+    window.addEventListener('online', retry)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      window.removeEventListener('online', retry)
+      document.removeEventListener('visibilitychange', onVisibility)
+      engine.dispose()
+      engineRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    saveProgress(state)
+    engineRef.current?.update(state)
+  }, [state])
+
+  const login = useCallback(async (password: string) => {
+    const result = await apiLogin(password)
+    if (result === 'ok') await engineRef.current?.connect()
+    return result
+  }, [])
+
+  const logout = useCallback(async () => {
+    await apiLogout()
+    clearProgress()
+    engineRef.current?.reset()
+    setState(emptyProgress())
+  }, [])
+
+  const dismissConflict = useCallback(() => setConflictNotice(false), [])
 
   const completeLesson = useCallback((unit: Unit, result: AttemptResult) => {
     setState((s) => recordLesson(s, unit, result, toDay()))
@@ -54,14 +108,26 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
-  const reset = useCallback(() => {
-    clearProgress()
-    setState(emptyProgress())
-  }, [])
+  // Apaga o progresso (o cache local é sobrescrito e o servidor recebe o estado vazio).
+  const reset = useCallback(() => setState(emptyProgress()), [])
 
   const api = useMemo<ProgressApi>(
-    () => ({ state, today: toDay(), completeLesson, completeLevelTest, completeConsolidation, reviewCard, replaceState: setState, reset }),
-    [state, completeLesson, completeLevelTest, completeConsolidation, reviewCard, reset],
+    () => ({
+      state,
+      today: toDay(),
+      completeLesson,
+      completeLevelTest,
+      completeConsolidation,
+      reviewCard,
+      replaceState: setState,
+      reset,
+      sync,
+      conflictNotice,
+      dismissConflict,
+      login,
+      logout,
+    }),
+    [state, completeLesson, completeLevelTest, completeConsolidation, reviewCard, reset, sync, conflictNotice, dismissConflict, login, logout],
   )
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>

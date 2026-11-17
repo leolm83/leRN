@@ -11,6 +11,22 @@ npm test         # testes do motor, do conteúdo e da interface
 npm run build
 ```
 
+## Rodar com Docker (progresso no Postgres)
+
+```bash
+cp .env.example .env
+npm run hash-password          # cole a linha gerada no .env
+openssl rand -hex 24           # → POSTGRES_PASSWORD
+openssl rand -hex 32           # → SESSION_SECRET
+docker compose up -d --build   # http://localhost:8080
+```
+
+Sobem três serviços: `web` (nginx com o app e proxy de `/api`), `api` (Node) e `db` (Postgres 17, volume `pgdata`). Só o `web` publica porta. O progresso fica no banco e sobrevive a `docker compose down`; **`docker compose down -v` apaga o volume**. Backup do banco: `docker compose exec db pg_dump -U lern lern > backup.sql`.
+
+**Exposto na internet:** coloque um proxy com HTTPS na frente (Caddy, Cloudflare Tunnel, Traefik…) e mantenha `COOKIE_SECURE=true`. Sem HTTPS a senha trafega em texto puro. Para testar em `http://localhost`, use `COOKIE_SECURE=false`.
+
+Ao entrar pela primeira vez, o progresso que já estava no navegador é enviado ao servidor (se o servidor estiver vazio). Sem conexão, o app continua funcionando com a cópia local e envia as mudanças quando a conexão volta; se outro aparelho tiver gravado uma versão mais nova nesse meio-tempo, a do servidor vence.
+
 ## Como funciona
 
 - **Trilha**: níveis A1→C2, unidades liberadas em sequência (≥ 80% para avançar) e uma prova por nível.
@@ -20,7 +36,7 @@ npm run build
 - **Revisão**: vocabulário e erros entram num sistema Leitner (1, 3, 7, 14, 30 dias).
 - **Gramática**: toda a teoria pesquisável. **Progresso**: streak, XP, meta diária e backup em JSON.
 
-O progresso fica no `localStorage` do navegador — exporte um backup na página Progresso.
+O progresso fica no Postgres (com cópia local no navegador) — também dá para exportar um backup em JSON na página Progresso.
 
 ## Adicionar conteúdo
 

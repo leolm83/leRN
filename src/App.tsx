@@ -5,9 +5,10 @@ import { GrammarPage } from './pages/GrammarPage'
 import { HomePage } from './pages/HomePage'
 import { LessonPage, NotFoundInline } from './pages/LessonPage'
 import { LevelTestPage } from './pages/LevelTestPage'
+import { LoginPage } from './pages/LoginPage'
 import { ProgressPage } from './pages/ProgressPage'
 import { ReviewPage } from './pages/ReviewPage'
-import { ProgressProvider } from './state/ProgressContext'
+import { ProgressProvider, useProgress } from './state/ProgressContext'
 
 // A chave reinicia o estado da página ao navegar de uma unidade para outra.
 function LessonRoute() {
@@ -23,6 +24,33 @@ function TestRoute() {
 function ConsolidationRoute() {
   const { id } = useParams()
   return <ConsolidationPage key={id} />
+}
+
+function AppRoutes() {
+  const { sync, conflictNotice, dismissConflict } = useProgress()
+  if (sync === 'auth') return <LoginPage />
+  return (
+    <>
+      {conflictNotice && (
+        <p className="tip page" role="status">
+          Seu progresso foi atualizado com a versão salva no servidor (mais recente, de outro aparelho).{' '}
+          <button className="btn link" onClick={dismissConflict}>
+            Ok
+          </button>
+        </p>
+      )}
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/lesson/:unitId" element={<LessonRoute />} />
+        <Route path="/test/:levelId" element={<TestRoute />} />
+        <Route path="/consolidation/:id" element={<ConsolidationRoute />} />
+        <Route path="/review" element={<ReviewPage />} />
+        <Route path="/grammar" element={<GrammarPage />} />
+        <Route path="/progress" element={<ProgressPage />} />
+        <Route path="*" element={<NotFoundInline />} />
+      </Routes>
+    </>
+  )
 }
 
 export default function App() {
@@ -44,16 +72,7 @@ export default function App() {
           <ThemePicker />
         </header>
         <main>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/lesson/:unitId" element={<LessonRoute />} />
-            <Route path="/test/:levelId" element={<TestRoute />} />
-            <Route path="/consolidation/:id" element={<ConsolidationRoute />} />
-            <Route path="/review" element={<ReviewPage />} />
-            <Route path="/grammar" element={<GrammarPage />} />
-            <Route path="/progress" element={<ProgressPage />} />
-            <Route path="*" element={<NotFoundInline />} />
-          </Routes>
+          <AppRoutes />
         </main>
       </HashRouter>
     </ProgressProvider>
